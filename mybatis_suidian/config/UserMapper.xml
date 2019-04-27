@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xx.www.mapper.UserMapper">
+	<!-- 
+		#{} 占位符,传入为字符串时，预编译会加上单引号
+		parameterType 占位符类型
+		resultType 结果集类型
+		如果结果集为集合类型时，应该配置为集合内容的类型，而不是集合本身
+	 -->
+	<select id="findUserById" parameterType="int" resultType="User">
+		select * from user where id = #{id}
+	</select>
+	
+	<!-- 
+		${}：连接符，如果传入的是基础数据类型，大括号中只能写value即${value}
+			如果传入的是pojo或map类型，大括号中只能写属性名或key名
+	 -->
+	<select id="findUserByName" parameterType="String" resultType="User">
+		select * from user where name like "%${value}%"
+	</select>
+	
+	<insert id="inserUser" parameterType="User">
+		<!-- 
+			keyProperty：将结果放在哪个属性
+			order：在插入语句前或后执行
+		 -->
+		<selectKey resultType="int" keyProperty="id" order="AFTER">
+			<!-- 返回当前事务产生的ID值 -->
+			select LAST_INSERT_ID();
+		</selectKey>
+		insert into user(name,password) values(#{name},#{password});
+	</insert>
+	
+	<update id="updateUser" parameterType="User">
+		update user set name=#{name},password=#{password} where id = #{id}
+	</update>
+	
+	<delete id="deleteUser" parameterType="int">
+		delete from user where id = #{id}
+	</delete>
+
+</mapper>

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xx.www.mapper.UserMapper">
+	<!-- 
+		#{} 占位符,传入为字符串时，预编译会加上单引号
+		parameterType 占位符类型
+		resultType 结果集类型
+		如果结果集为集合类型时，应该配置为集合内容的类型，而不是集合本身
+	 -->
+	<select id="findUserById" parameterType="int" resultType="User">
+		select * from user where id = #{id}
+	</select>
+	
+	<!-- 多条件查询使用map -->
+	<select id="findUsersByMap" parameterType="map" resultType="User">
+		select * from user where id > #{id} and name like "%${name}%";
+	</select>
+	
+	<!-- 使用包装类查询 -->
+	<select id="findUsersByQueryUser" parameterType="QueryUser" resultType="User">
+		select * from user where id > #{user.id}
+	</select>
+	
+	<!-- 使用map接收查询结果 -->
+	<select id="findUserById2" parameterType="int" resultType="map">
+		select * from user where id = #{id}
+	</select>
+	
+	<!-- 当表中字段和类中属性名不同时，需要手动建立对应不上的字段的映射 -->
+	<resultMap type="User" id="findUserResMap">
+		<id column="id" property="id"/>
+		<result column="name" property="name"/>
+		<result column="password" property="password"/>
+	</resultMap>
+	
+	<!--resultMap标签引入手动映射  -->
+	<select id="findUserById3" parameterType="int" resultMap="findUserResMap">
+		select * from user where id = #{id}
+	</select>
+	
+	<insert id="inserUser" parameterType="User">
+		<!-- 
+			keyProperty：将结果放在哪个属性
+			order：在插入语句前或后执行
+		 -->
+		<selectKey resultType="int" keyProperty="id" order="AFTER">
+			<!-- 返回当前事务产生的ID值 -->
+			select LAST_INSERT_ID();
+		</selectKey>
+		insert into user(name,password) values(#{name},#{password});
+	</insert>
+	
+	<update id="updateUser" parameterType="User">
+		update user set name=#{name},password=#{password} where id = #{id}
+	</update>
+	
+	<delete id="deleteUser" parameterType="int">
+		delete from user where id = #{id}
+	</delete>
+
+	<!-- 
+		动态sql：
+			<if>:判断
+			<where>：去除第一个and或or
+			<foreach>：循环，可以循环数据也可以循环集合
+			<sql>：片段
+			<include>：引用sql片段
+			<set>：修改（update）时，去除最后一个逗号
+	 -->
+	 <!-- if where-->
+	<select id="findUsersByMap2" parameterType="map" resultType="User">
+		select * from user 
+		<where>
+			<if test="id != null and id != ''">
+				id > #{id}
+			</if>
+			 <if test="name != null and name != ''">
+				and name like "%${name}%"
+			</if>
+		</where>
+	</select>
+	
+	<!-- foreach:
+		collection: 集合名称
+		open： 组合开头
+		close：组合结尾
+		separator：分割符
+		item：集合值
+	 -->
+	<select id="findUsersByQueryUser2" parameterType="QueryUser" resultType="User">
+		select * from user 
+		where
+		id in 
+		<!-- <foreach collection="ids" open="(" close=")" separator="," item="id">
+			#{id}
+		</foreach> -->
+		<!-- 引用sql -->
+		<include refid="foreachValue"></include>
+	</select>
+	
+	<!-- sql -->
+	<sql id="foreachValue">
+		<foreach collection="ids" open="(" close=")" separator="," item="id">
+			#{id}
+		</foreach>
+	</sql>
+	
+	<!-- set： -->
+	<update id="updateUser2" parameterType="User">
+		update user 
+		<set>
+			<if test="name != null and name != ''">
+				name=#{name},
+			</if>
+			<if test="password != null and password != ''">
+				password=#{password},
+			</if>
+		</set>
+		where id = #{id}
+	</update>
+</mapper>

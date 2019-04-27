@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xx.www.mapper.OneToOneMapper">
+	<!-- 一对一表映射 -->
+	<resultMap type="Orders" id="OrderMap">
+		<id column="id" property="id"/>
+		<result column="content" property="content"/>
+		<result column="customer_id" property="customer_id"/>
+		<!-- 对象类型-->
+		<association property="customer" javaType="Customer">
+			<id column="customer_id" property="id"/>
+			<result column="name" property="name"/>
+			<result column="age" property="age"/>
+		</association>
+	</resultMap>
+
+	<select id="findOrderById" parameterType="int" resultMap="OrderMap">
+		select o.*,c.name,c.age 
+		from orders o 
+		inner join customer c on o.customer_id = c.id 
+		having o.id = #{id}
+	</select>
+
+</mapper>
